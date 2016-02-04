@@ -24,9 +24,9 @@ public class Player extends AbstractVerticle {
 			processes.clear();
 		});
 		Runtime r = Runtime.getRuntime();
-		eventBus.consumer("play", message -> {
+		eventBus.<String>consumer("play", message -> {
 			System.out.println("add play");
-			deque.add((String)message.body());
+			deque.add(message.body());
 			if(!isPlaying) {
 				System.out.println("play queue");
 				isPlaying = true;

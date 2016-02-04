@@ -26,11 +26,11 @@ public class WebsocketHandler implements Handler<SockJSSocket> {
 		final MessageConsumer<String> sessionConsumer = consumers.get(sessionId);
 
 		if (sessionConsumer == null) {
-			final MessageConsumer<String> consumer = eventBus.consumer("played", message -> {
+			final MessageConsumer<String> consumer = eventBus.consumer("play", message -> {
 				final String id = sockJSSocket.webSession().get("id").toString();
 				final JsonObject dashboardJson = new JsonObject(message.body());
 				if (dashboardJson.getString("id").equals(id)) {
-					sockJSSocket.write(Buffer.buffer("played"));
+					sockJSSocket.write(Buffer.buffer(message.body()));
 				}
 			});
 			log.info("bound WS handler to sessionId {}", sessionId);

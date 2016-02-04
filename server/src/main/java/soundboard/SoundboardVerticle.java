@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -28,6 +29,9 @@ public class SoundboardVerticle extends AbstractVerticle {
 
 		Router router = Router.router(vertx);
 		Router apiRouter = Router.router(vertx);
+
+		CorsHandler corsHandler = CorsHandler.create("^.*$");
+		router.route().handler(corsHandler);
 
 		final String soundfilesPath = Config.get("soundfilesPath");
 
