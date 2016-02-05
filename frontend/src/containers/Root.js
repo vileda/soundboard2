@@ -1,4 +1,6 @@
 import React, { PropTypes } from 'react';
+import ThemeManager from 'material-ui/lib/styles/theme-manager';
+import Theme from '../styles/mui-theme';
 import { Provider } from 'react-redux';
 import { Router } from 'react-router';
 
@@ -8,6 +10,16 @@ export default class Root extends React.Component {
     routes: PropTypes.element.isRequired,
     store: PropTypes.object.isRequired
   };
+
+  static childContextTypes = {
+    muiTheme: PropTypes.object
+  };
+
+  getChildContext () {
+    return {
+      muiTheme: ThemeManager.getMuiTheme(Theme)
+    };
+  }
 
   get content () {
     return (

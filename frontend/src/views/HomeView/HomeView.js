@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { actions as soundfileActions } from '../../redux/modules/soundfiles';
+import Theme from '../../styles/mui-theme';
 import map from 'lodash/map';
 import Card from 'material-ui/lib/card/card';
 import CardActions from 'material-ui/lib/card/card-actions';
@@ -38,17 +39,19 @@ export class HomeView extends React.Component {
         <ul>
         {map(this.props.soundfiles.items, (value, key) => {
           return (
-            <li key={key} style={{display: 'inline-block', minWidth: 150, maxWidth: 300}}>
+            <li key={key} style={{display: 'inline-block', padding: '10px'}}>
               <Card>
                 <CardHeader
                   title={key}
+                  titleColor={Theme.palette.textColor}
+                  textStyle={{padding: '0 50px 0 0'}}
                   actAsExpander
                   showExpandableButton
                 />
-                <CardActions style={{position: 'fixed', zIndex: 5, backgroundColor: 'white'}} expandable>
+                <CardActions style={{position: 'absolute', zIndex: 5, backgroundColor: Theme.palette.canvasColor}} expandable>
                   {value.map((url) => {
                     const name = url.split('/').reverse()[0];
-                    return <RaisedButton onClick={this.handleOnClick(url)} style={{marginBottom: 5}} key={url} label={name}/>;
+                    return <RaisedButton secondary onClick={this.handleOnClick(url)} style={{marginBottom: 5}} key={url} label={name}/>;
                   })}
                 </CardActions>
               </Card>
