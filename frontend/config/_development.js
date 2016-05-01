@@ -7,7 +7,7 @@ export default (config) => ({
     enabled: false,
     options: {
       // koa-proxy options
-      host: 'http://localhost:8000',
+      host: 'http://localhost:8080',
       match: /^\/api\/.*/
     }
   }

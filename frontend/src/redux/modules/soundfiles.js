@@ -20,7 +20,7 @@ export const searched = createAction(SEARCHED, (res) => res);
 // reducer take care of this logic.
 export const load = () => {
   return (dispatch) => {
-    fetch('http://localhost:8080/api/sounds')
+    fetch('/api/sounds')
     .then((res) => res.json())
     .then((res) => {
       console.log(res);
@@ -31,13 +31,13 @@ export const load = () => {
 
 export const play = (url) => {
   return () => {
-    fetch('http://localhost:8080/api/play?url=' + url);
+    fetch('/api/play?url=' + url);
   };
 };
 
 export const search = (term) => {
   return (dispatch) => {
-    fetch('http://localhost:8080/api/search?term=' + term)
+    fetch('/api/search?term=' + term)
       .then((res) => res.json())
       .then((res) => {
         dispatch(searched(res));

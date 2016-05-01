@@ -8,6 +8,7 @@ import Card from 'material-ui/lib/card/card';
 import CardActions from 'material-ui/lib/card/card-actions';
 import CardHeader from 'material-ui/lib/card/card-header';
 import RaisedButton from 'material-ui/lib/raised-button';
+import TextField from 'material-ui/lib/text-field';
 
 // We define mapStateToProps where we'd normally use
 // the @connect decorator so the data requirements are clear upfront, but then
@@ -49,7 +50,7 @@ export class HomeView extends React.Component {
   render () {
     return (
       <div className='container'>
-        <input type={'text'} value={this.state.query} onChange={this.handleOnChange} />
+        <TextField floatingLabelText={'search'} type={'text'} value={this.state.query} onChange={this.handleOnChange} />
         {this.props.soundfiles.search.length
           ? <div style={{position: 'absolute', zIndex: 5, backgroundColor: Theme.palette.canvasColor}}>
               {this.props.soundfiles.search.map((url) => {
