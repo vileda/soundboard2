@@ -4,11 +4,13 @@ import { createAction, handleActions } from 'redux-actions';
 // Constants
 // ------------------------------------
 export const SOUNDFILES_FETCHED = 'SOUNDFILES_FETCHED';
+export const SEARCHED = 'SEARCHED';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
 export const fetched = createAction(SOUNDFILES_FETCHED, (res) => res);
+export const searched = createAction(SEARCHED, (res) => res);
 
 // This is a thunk, meaning it is a function that immediately
 // returns a function for lazy evaluation. It is incredibly useful for
@@ -33,9 +35,21 @@ export const play = (url) => {
   };
 };
 
+export const search = (term) => {
+  return (dispatch) => {
+    fetch('http://localhost:8080/api/search?term=' + term)
+      .then((res) => res.json())
+      .then((res) => {
+        dispatch(searched(res));
+      });
+  };
+};
+
 export const actions = {
   load,
   fetched,
+  search,
+  searched,
   play
 };
 
@@ -43,5 +57,6 @@ export const actions = {
 // Reducer
 // ------------------------------------
 export default handleActions({
-  [SOUNDFILES_FETCHED]: (state, { payload }) => Object.assign({}, state, {items: payload})
-}, {items: {}});
+  [SOUNDFILES_FETCHED]: (state, { payload }) => Object.assign({}, state, {items: payload}),
+  [SEARCHED]: (state, { payload }) => Object.assign({}, state, {search: payload})
+}, {items: {}, search: []});

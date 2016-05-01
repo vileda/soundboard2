@@ -7,90 +7,119 @@ import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 public class SoundboardVerticle extends AbstractVerticle {
-	@Override
-	public void start() throws Exception {
-		final HttpServer httpServer = vertx.createHttpServer();
-		final EventBus eventBus = vertx.eventBus();
-		final FileSystem fileSystem = vertx.fileSystem();
-		final Map<String, List<String>> soundfiles = new HashMap<>();
 
-		Router router = Router.router(vertx);
-		Router apiRouter = Router.router(vertx);
+  public static final String UNCATEGORIZED = "uncategorized";
 
-		CorsHandler corsHandler = CorsHandler.create("^.*$");
-		router.route().handler(corsHandler);
+  @Override
+  public void start() throws Exception {
+    final HttpServer httpServer = vertx.createHttpServer();
+    final EventBus eventBus = vertx.eventBus();
+    final FileSystem fileSystem = vertx.fileSystem();
+    final Map<String, List<String>> soundfiles = new TreeMap<>();
 
-		final String soundfilesPath = Config.get("soundfilesPath");
+    Router router = Router.router(vertx);
+    Router apiRouter = Router.router(vertx);
 
-		apiRouter.get("/sounds").handler(routingContext -> {
-			if(!soundfiles.isEmpty()) {
-				routingContext.response().end(Json.encode(soundfiles));
-				soundfiles.clear();
-			}
+    CorsHandler corsHandler = CorsHandler.create("^.*$");
+    router.route().handler(corsHandler);
 
-			soundfiles.put("Uncategorized", new ArrayList<>());
-			fileSystem.readDirBlocking(soundfilesPath).forEach(name -> {
-				final FileProps fileProps = fileSystem.propsBlocking(name);
-				if(!fileProps.isDirectory()) {
-					soundfiles.get("Uncategorized").add(name);
-				}
-				else {
-					final String[] dirs = name.split("/");
-					soundfiles.put(dirs[dirs.length-1], fileSystem.readDirBlocking(name));
-				}
-			});
+    final String soundfilesPath = Config.get("soundfilesPath");
 
-			if(!routingContext.response().ended()) {
-				routingContext.response().end(Json.encode(soundfiles));
-			}
-		});
+    apiRouter.get("/sounds").handler(routingContext -> {
+      if (!soundfiles.isEmpty()) {
+        routingContext.response().end(Json.encode(soundfiles));
+        soundfiles.clear();
+      }
 
-		apiRouter.get("/play").handler(routingContext -> {
-			final String url = routingContext.request().getParam("url");
-			System.out.println(url);
-			eventBus.publish("play", url);
-			routingContext.response().end();
-		});
+      soundfiles.put(UNCATEGORIZED, new ArrayList<>());
+      fileSystem.readDirBlocking(soundfilesPath).forEach(name -> {
+        final FileProps fileProps = fileSystem.propsBlocking(name);
+        if (!fileProps.isDirectory()) {
+          soundfiles.get(UNCATEGORIZED).add(name);
+        }
+        else {
+          final String[] dirs = name.split("/");
+          soundfiles.put(dirs[dirs.length - 1].toLowerCase(), fileSystem.readDirBlocking(name));
+        }
+      });
 
-		apiRouter.get("/kill").handler(routingContext -> {
-			eventBus.publish("kill", "all");
-			routingContext.response().end();
-		});
+      if (!routingContext.response().ended()) {
+        routingContext.response().end(Json.encode(soundfiles));
+      }
+    });
 
-		router.mountSubRouter("/api", apiRouter);
+    apiRouter.get("/search").handler(routingContext -> {
+      final String term = routingContext.request().getParam("term");
 
-		final SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
+      if(StringUtils.isBlank(term)) {
+        routingContext.response().end(new JsonArray().encode());
+        return;
+      }
 
-		final SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+      List<String> paths = soundfiles
+          .values().stream()
+          .flatMap(Collection::stream)
+          .sorted((o1, o2) -> {
+            final int fuzzyDistance1 = StringUtils.getFuzzyDistance(o1, term, Locale.getDefault());
+            final int fuzzyDistance2 = StringUtils.getFuzzyDistance(o2, term, Locale.getDefault());
+            if (fuzzyDistance1 > fuzzyDistance2) return -1;
+            if (fuzzyDistance1 == fuzzyDistance2) return 0;
+            else return 1;
+          })
+          .collect(Collectors.toList());
+      routingContext
+          .response().end(Json.encode(paths.size() > 10 ? paths.subList(0, 10) : paths));
+    });
 
-		final Map<String, MessageConsumer<String>> consumers = new HashMap<>();
-		final WebsocketHandler websocketHandler = new WebsocketHandler(eventBus, consumers);
-		sockJSHandler.socketHandler(websocketHandler);
+    apiRouter.get("/play").handler(routingContext -> {
+      final String url = routingContext.request().getParam("url");
+      System.out.println(url);
+      eventBus.publish("play", url);
+      routingContext.response().end();
+    });
 
-		router.route("/socket*").handler(sockJSHandler);
+    apiRouter.get("/kill").handler(routingContext -> {
+      eventBus.publish("kill", "all");
+      routingContext.response().end();
+    });
 
-		final StaticHandler staticHandler = StaticHandler.create();
-		router.get()
-				.pathRegex("^(/.+\\.(js|css|ttf|svg|gif|png|jpg|woff|ico))$")
-				.handler(staticHandler::handle);
+    router.mountSubRouter("/api", apiRouter);
 
-		router.get("/*").handler(routingContext -> routingContext
-				.response()
-				.sendFile("../frontend/dist/webroot/index.html"));
+    final SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
 
-		httpServer.requestHandler(router::accept).listen(8080);
-	}
+    final SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+
+    final Map<String, MessageConsumer<String>> consumers = new HashMap<>();
+    final WebsocketHandler websocketHandler = new WebsocketHandler(eventBus, consumers);
+    sockJSHandler.socketHandler(websocketHandler);
+
+    router.route("/socket*").handler(sockJSHandler);
+
+    final StaticHandler staticHandler = StaticHandler.create();
+    staticHandler
+        .setWebRoot("frontend/dist/")
+        .setIndexPage("index.html");
+    router.get()
+          .pathRegex("^(/.+\\.(js|css|ttf|svg|gif|png|jpg|woff|ico))$")
+          .handler(staticHandler);
+
+    router.get("/*").handler(routingContext -> routingContext
+        .response()
+        .sendFile("frontend/dist/index.html"));
+
+    httpServer.requestHandler(router::accept).listen(8080);
+  }
 }

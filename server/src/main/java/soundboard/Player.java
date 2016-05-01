@@ -17,13 +17,16 @@ public class Player extends AbstractVerticle {
 	@Override
 	public void start() throws Exception {
 		final EventBus eventBus = vertx.eventBus();
+
 		eventBus.consumer("kill", message -> {
 			System.out.println("killing");
 			isPlaying = false;
 			processes.forEach(Process::destroyForcibly);
 			processes.clear();
 		});
+
 		Runtime r = Runtime.getRuntime();
+
 		eventBus.<String>consumer("play", message -> {
 			System.out.println("add play");
 			deque.add(message.body());
