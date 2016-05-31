@@ -42,11 +42,10 @@ export class HomeView extends React.Component {
     };
   }
 
-  doSearch = debounce(() => this.props.search(this.state.query), 500);
+  doSearch = debounce((query) => this.props.search(query), 200);
 
   handleOnChange = (e) => {
-    this.setState({query: e.target.value});
-    this.doSearch();
+    this.doSearch(e.target.value);
   };
 
   handleOnExpandChange = (key) => {
@@ -63,18 +62,23 @@ export class HomeView extends React.Component {
   render () {
     return (
       <div className='container'>
-        <TextField floatingLabelText={'search'} type={'text'} value={this.state.query} onChange={this.handleOnChange} />
+        <TextField
+          floatingLabelText={'search'}
+          type={'text'}
+          onChange={this.handleOnChange}
+          style={{margin: '0 auto', display: 'block'}}
+        />
         {this.props.searchResults.length
-          ? <div style={{position: 'absolute', zIndex: 5, backgroundColor: Theme.palette.canvasColor}}>
+          ? <div style={{position: 'absolute', zIndex: 99999, backgroundColor: Theme.palette.canvasColor}}>
               {this.props.searchResults.map((url) => {
                 const name = url.split('/').reverse()[0];
                 const dir = url.split('/').reverse()[1];
-                return <button
-                         onClick={this.handleOnClick(url)}
-                         style={{margin: 5}}
-                         key={`search_${url}`}>
-                    {`${dir}/${name}`}
-                  </button>;
+                return (<RaisedButton
+                  onClick={this.handleOnClick(url)}
+                  style={{margin: 5}}
+                  key={`search_${url}`}
+                  label={`${dir}/${name}`}
+                  secondary />);
               })}
             </div>
           : null
