@@ -1,8 +1,8 @@
 import React, {PropTypes} from 'react';
 import {connect} from 'react-redux';
 import {actions as soundfileActions} from '../../redux/modules/soundfiles';
+import {actions as soundsearchActions} from '../../redux/modules/soundsearch';
 import Theme from '../../styles/mui-theme';
-import map from 'lodash/map';
 import debounce from 'lodash/debounce';
 import Card from 'material-ui/lib/card/card';
 import CardActions from 'material-ui/lib/card/card-actions';
@@ -16,11 +16,13 @@ import TextField from 'material-ui/lib/text-field';
 // the component can be tested w/ and w/o being connected.
 // See: http://rackt.github.io/redux/docs/recipes/WritingTests.html
 const mapStateToProps = (state) => ({
-  soundfiles: state.soundfiles
+  soundfiles: state.soundfiles.items,
+  searchResults: state.soundsearch
 });
 export class HomeView extends React.Component {
   static propTypes = {
-    soundfiles: PropTypes.object.isRequired,
+    soundfiles: PropTypes.array.isRequired,
+    searchResults: PropTypes.array.isRequired,
     load: PropTypes.func.isRequired,
     play: PropTypes.func.isRequired,
     search: PropTypes.func.isRequired
@@ -35,41 +37,57 @@ export class HomeView extends React.Component {
   }
 
   handleOnClick (url) {
-    return (e) => {
+    return () => {
       this.props.play(url);
     };
   }
 
-  doSearch = debounce(() => this.props.search(this.state.query), 300);
+  doSearch = debounce(() => this.props.search(this.state.query), 500);
 
   handleOnChange = (e) => {
     this.setState({query: e.target.value});
     this.doSearch();
   };
 
+  handleOnExpandChange = (key) => {
+    return (expanded) => {
+      this.setState({[key + '_expanded']: expanded});
+      console.debug(expanded);
+    };
+  };
+
+  first (obj) {
+    for (var a in obj) return a;
+  }
+
   render () {
     return (
       <div className='container'>
         <TextField floatingLabelText={'search'} type={'text'} value={this.state.query} onChange={this.handleOnChange} />
-        {this.props.soundfiles.search.length
+        {this.props.searchResults.length
           ? <div style={{position: 'absolute', zIndex: 5, backgroundColor: Theme.palette.canvasColor}}>
-              {this.props.soundfiles.search.map((url) => {
+              {this.props.searchResults.map((url) => {
                 const name = url.split('/').reverse()[0];
                 const dir = url.split('/').reverse()[1];
-                return <RaisedButton secondary
-                                     onClick={this.handleOnClick(url)}
-                                     style={{margin: 5}}
-                                     key={`search_${url}`}
-                                     label={`${dir}/${name}`} />;
+                return <button
+                         onClick={this.handleOnClick(url)}
+                         style={{margin: 5}}
+                         key={`search_${url}`}>
+                    {`${dir}/${name}`}
+                  </button>;
               })}
             </div>
           : null
         }
         <ul>
-        {map(this.props.soundfiles.items, (value, key) => {
+        {this.props.soundfiles.map((entry) => {
+          const key = this.first(entry);
+          const value = entry[key];
           return (
             <li key={key} style={{display: 'inline-block', padding: '10px'}}>
-              <Card>
+              <Card
+                onExpandChange={this.handleOnExpandChange(key)}
+              >
                 <CardHeader
                   title={key}
                   titleColor={Theme.palette.textColor}
@@ -78,10 +96,12 @@ export class HomeView extends React.Component {
                   showExpandableButton
                 />
                 <CardActions style={{position: 'absolute', zIndex: 5, backgroundColor: Theme.palette.canvasColor}} expandable>
-                  {value.map((url) => {
-                    const name = url.split('/').reverse()[0];
-                    return <RaisedButton secondary onClick={this.handleOnClick(url)} style={{marginBottom: 5}} key={url} label={name}/>;
-                  })}
+                  {this.state[key + '_expanded']
+                    ? value.map((url) => {
+                      const name = url.split('/').reverse()[0];
+                      return <RaisedButton secondary onClick={this.handleOnClick(url)} style={{marginBottom: 5}} key={url} label={name}/>;
+                    })
+                    : null}
                 </CardActions>
               </Card>
             </li>
@@ -93,4 +113,7 @@ export class HomeView extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, soundfileActions)(HomeView);
+export default connect(mapStateToProps, {
+  ...soundfileActions,
+  ...soundsearchActions
+})(HomeView);
