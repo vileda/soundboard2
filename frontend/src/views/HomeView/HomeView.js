@@ -48,6 +48,13 @@ export class HomeView extends React.Component {
     this.doSearch(e.target.value);
   };
 
+  handleOnKeyUp = (e) => {
+    if(e.keyCode === 27) {
+      e.target.value = '';
+      this.handleOnChange(e);
+    }
+  };
+
   handleOnExpandChange = (key) => {
     return (expanded) => {
       this.setState({[key + '_expanded']: expanded});
@@ -66,6 +73,7 @@ export class HomeView extends React.Component {
           floatingLabelText={'search'}
           type={'text'}
           onChange={this.handleOnChange}
+          onKeyDown={this.handleOnKeyUp}
           style={{margin: '0 auto', display: 'block'}}
         />
         {this.props.searchResults.length
