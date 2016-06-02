@@ -49,7 +49,7 @@ export class HomeView extends React.Component {
   };
 
   handleOnKeyUp = (e) => {
-    if(e.keyCode === 27) {
+    if (e.keyCode === 27) {
       e.target.value = '';
       this.handleOnChange(e);
     }
