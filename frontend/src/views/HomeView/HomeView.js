@@ -10,11 +10,6 @@ import CardHeader from 'material-ui/lib/card/card-header';
 import RaisedButton from 'material-ui/lib/raised-button';
 import TextField from 'material-ui/lib/text-field';
 
-// We define mapStateToProps where we'd normally use
-// the @connect decorator so the data requirements are clear upfront, but then
-// export the decorated component after the main class definition so
-// the component can be tested w/ and w/o being connected.
-// See: http://rackt.github.io/redux/docs/recipes/WritingTests.html
 const mapStateToProps = (state) => ({
   soundfiles: state.soundfiles.items,
   searchResults: state.soundsearch
@@ -62,7 +57,7 @@ export class HomeView extends React.Component {
   };
 
   first (obj) {
-    for (var a in obj) return a;
+    for (const a in obj) return a;
   }
 
   render () {
