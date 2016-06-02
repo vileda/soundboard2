@@ -58,7 +58,6 @@ export class HomeView extends React.Component {
   handleOnExpandChange = (key) => {
     return (expanded) => {
       this.setState({[key + '_expanded']: expanded});
-      console.debug(expanded);
     };
   };
 
