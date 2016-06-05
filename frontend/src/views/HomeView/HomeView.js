@@ -56,10 +56,6 @@ export class HomeView extends React.Component {
     };
   };
 
-  first (obj) {
-    for (const a in obj) return a;
-  }
-
   render () {
     return (
       <div className='container'>
@@ -87,7 +83,7 @@ export class HomeView extends React.Component {
         }
         <ul>
         {this.props.soundfiles.map((entry) => {
-          const key = this.first(entry);
+          const key = Object.keys(entry)[0];
           const value = entry[key];
           return (
             <li key={key} style={{display: 'inline-block', padding: '10px'}}>
