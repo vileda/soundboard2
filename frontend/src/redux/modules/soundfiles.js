@@ -1,4 +1,5 @@
 import { createAction, handleActions } from 'redux-actions';
+import apiBaseURL from '../../api/index';
 
 // ------------------------------------
 // Constants
@@ -17,11 +18,9 @@ export const fetched = createAction(SOUNDFILES_FETCHED, (res) => res);
 // you'd probably want to dispatch an action of COUNTER_DOUBLE and let the
 // reducer take care of this logic.
 
-const apiBaseURL = 'http://localhost:8080';
-
 export const load = () => {
   return (dispatch) => {
-    fetch(apiBaseURL + '/api/sounds')
+    fetch(apiBaseURL + '/sounds')
     .then((res) => res.json())
     .then((res) => {
       console.log(res);
@@ -32,7 +31,7 @@ export const load = () => {
 
 export const play = (url) => {
   return () => {
-    fetch(apiBaseURL + '/api/play?url=' + url);
+    fetch(apiBaseURL + '/play?url=' + url);
   };
 };
 

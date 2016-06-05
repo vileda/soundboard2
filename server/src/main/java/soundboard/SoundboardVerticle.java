@@ -35,10 +35,6 @@ public class SoundboardVerticle extends AbstractVerticle {
 
     CorsHandler corsHandler = CorsHandler.create("^.*$");
     router.route().handler(corsHandler);
-    router.route().handler(routingContext -> {
-      routingContext.response().headers().add("content-type", "application/json");
-      routingContext.next();
-    });
 
     final String soundfilesPath = Config.get("soundfilesPath");
 
@@ -98,6 +94,11 @@ public class SoundboardVerticle extends AbstractVerticle {
     apiRouter.get("/kill").handler(routingContext -> {
       eventBus.publish("kill", "all");
       routingContext.response().end();
+    });
+
+    apiRouter.route().handler(routingContext -> {
+      routingContext.response().headers().add("content-type", "application/json");
+      routingContext.next();
     });
 
     router.mountSubRouter("/api", apiRouter);
