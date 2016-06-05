@@ -36,7 +36,7 @@ public class SoundboardVerticle extends AbstractVerticle {
     CorsHandler corsHandler = CorsHandler.create("^.*$");
     router.route().handler(corsHandler);
 
-    final String soundfilesPath = Config.get("soundfilesPath");
+    final String soundfilesPath = Config.get("soundfiles.path");
 
     apiRouter.get("/sounds").handler(routingContext -> {
       if (!soundfiles.isEmpty()) {
@@ -125,6 +125,6 @@ public class SoundboardVerticle extends AbstractVerticle {
         .response()
         .sendFile("webroot/index.html"));
 
-    httpServer.requestHandler(router::accept).listen(3005);
+    httpServer.requestHandler(router::accept).listen(Integer.parseInt(Config.get("soundboard.port")));
   }
 }

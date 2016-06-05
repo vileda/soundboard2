@@ -40,7 +40,7 @@ public class Player extends AbstractVerticle {
 						if((url = deque.poll()) != null) {
 							try {
 								System.out.println("play " + url);
-								Process p = r.exec(String.format(Config.get("playCommand"), url));
+								Process p = r.exec(String.format(Config.get("play.command"), url));
 								processes.add(p);
 								p.waitFor();
 							} catch (IOException | InterruptedException e) {
