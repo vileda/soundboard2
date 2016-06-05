@@ -115,7 +115,7 @@ public class SoundboardVerticle extends AbstractVerticle {
 
     final StaticHandler staticHandler = StaticHandler.create();
     staticHandler
-        .setWebRoot("frontend/dist/")
+        .setWebRoot("webroot")
         .setIndexPage("index.html");
     router.get()
           .pathRegex("^(/.+\\.(js|css|ttf|svg|gif|png|jpg|woff|ico))$")
@@ -123,8 +123,8 @@ public class SoundboardVerticle extends AbstractVerticle {
 
     router.get("/*").handler(routingContext -> routingContext
         .response()
-        .sendFile("frontend/dist/index.html"));
+        .sendFile("webroot/index.html"));
 
-    httpServer.requestHandler(router::accept).listen(8080);
+    httpServer.requestHandler(router::accept).listen(3005);
   }
 }
